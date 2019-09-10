@@ -1,6 +1,5 @@
 import ballerina/http;
 import ballerina/encoding;
-import ballerina/log;
 
 final string OPENWEATHER_API_URL="https://api.openweathermap.org";
 final string CURRENT_WEATHER_ENDPOINT = "/data/2.5/weather";
@@ -23,17 +22,21 @@ public type Client client object {
 
         var res = self.openWeatherClient->get(param);
         if (res is error) {
-            cityWeather.status = "Error occurred conecting OpenWeather API";
-            log:printError(res.toString());
+            error e = error("Error occurred conecting OpenWeather API");
+            return e;
+
         } else {
             var result = res.getJsonPayload();
-            if (result is error){
-                cityWeather.status = "Error occurred extracting payload";
-                log:printError(result.toString());
+            if (result is error) {
+                error e = error("Error occurred extracting payload");
+                return e;
+
             }else { 
                 json code = check result.cod;
                 if (code == "404"){
-                    cityWeather.status = "City is not found";
+                    error e = error("City is not found");
+                    return e;
+
                 } else {
                     var weatherArrJson = <json[]> check result.weather;
                     var weatherMain = check weatherArrJson[0].main;
@@ -59,7 +62,6 @@ public type Client client object {
                     cityWeather.wind_speed = weatherWindSpeed.toString();
                     cityWeather.sunrise = weatherSunrise.toString();
                     cityWeather.sunset = weatherSunset.toString();
-                    cityWeather.status = "OK";
                 }
             }
         }
@@ -84,5 +86,5 @@ public type WeatherData record {
     string wind_speed = "";
     string sunrise = "";
     string sunset = "";
-    string status = "";
 };
+

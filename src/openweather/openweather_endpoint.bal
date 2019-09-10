@@ -15,14 +15,14 @@ public type Client client object {
         self.apiKey = opweatherConfig.apiKey;
     }
 
-    public remote function getWeather(string city) returns @tainted WeatherStatus|error {
+    public remote function getWeather(string city) returns @tainted WeatherData|error {
 
         WeatherData cityWeather = {}; 
         string encodedCity = check encoding:encodeUriComponent(city, "UTF-8");
         string param = string `${CURRENT_WEATHER_ENDPOINT}?q=${encodedCity}&appid=${self.apiKey}&units=metric`;
 
         var res = self.openWeatherClient->get(param);
-        if (res is error){
+        if (res is error) {
             cityWeather.status = "Error occurred conecting OpenWeather API";
             log:printError(res.toString());
         } else {
@@ -30,7 +30,7 @@ public type Client client object {
             if (result is error){
                 cityWeather.status = "Error occurred extracting payload";
                 log:printError(result.toString());
-            }else{ 
+            }else { 
                 json code = check result.cod;
                 if (code == "404"){
                     cityWeather.status = "City is not found";
